@@ -1,0 +1,27 @@
+{
+  "name": "@repo/ui",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "watch:build": "tsc -b -w",
+    "watch:css": "npx postcss ./src/index.css -o ./dist/index.css --watch",
+    "build": "tsc -b && npx postcss ./src/index.css -o ./dist/index.css",
+    "dev": "concurrently \"npm:watch:*\""
+  },
+  "exports": "./dist/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "clsx": "2.1.1",
+    "solid-js": "^1.8.17",
+    "tailwind-merge": "2.3.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "10.4.19",
+    "postcss": "8.4.38",
+    "postcss-cli": "11.0.0",
+    "postcss-prefix-selector": "1.16.1",
+    "tailwindcss": "3.4.4"
+  }
+}
