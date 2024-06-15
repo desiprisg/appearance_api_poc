@@ -462,11 +462,8 @@ Constrain images and videos to the parent width and preserve their intrinsic asp
     --tw-contain-paint:  ;
     --tw-contain-style:  ;
   }
-  :where(:where(.nv-bg-red-500)) {
-    --tw-bg-opacity: 1;
-    background-color: rgb(239 68 68 / var(--tw-bg-opacity));
-  }
 }
 
+@tailwind base;
 @tailwind components;
 @tailwind utilities;

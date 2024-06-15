@@ -2,7 +2,10 @@ import { Config } from "tailwindcss";
 
 const config: Config = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
-  prefix: "nv-",
+  prefix: "tw-",
+  corePlugins: {
+    preflight: false,
+  },
   theme: {
     extend: {},
   },
