@@ -13,10 +13,9 @@ export default function App() {
           <Title>SolidStart - Basic</Title>
           <a href="/">Index</a>
           <a href="/about">About</a>
-          //
           <Inbox
             appearance={{
-              elements: { button: "purple-bg-class" /* try yellow-bg-class */ },
+              elements: { button: { backgroundColor: "black" } },
             }}
           />
           <button>solid start button</button>

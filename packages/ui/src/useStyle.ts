@@ -1,27 +1,54 @@
-import { createMemo } from "solid-js";
-import { Elements, useAppearance } from "./appearance-context";
+import { CSSProperties, Elements, useAppearance } from "./appearance-context";
 import { cn } from "./lib/utils/cn";
+
+function cssObjectToString(styles: CSSProperties): string {
+  return Object.entries(styles)
+    .map(([key, value]) => {
+      const kebabKey = key.replace(/([A-Z])/g, "-$1").toLowerCase();
+      return `${kebabKey}: ${value};`;
+    })
+    .join(" ");
+}
+
+function css(styleElement: HTMLStyleElement, styles: string) {
+  const index = styleElement.sheet?.cssRules.length ?? 0;
+  const className = `nv-css-${index}`;
+  const rule = `.${className} { ${styles} }`;
+
+  styleElement.sheet?.insertRule(rule, index);
+
+  return className;
+}
 
 export const useStyle = () => {
   const appearance = useAppearance();
-  const style = createMemo(() => {
-    return (className: string, descriptor?: keyof Elements) => {
-      const appearanceClassnames =
-        descriptor && typeof appearance.elements[descriptor] === "string"
-          ? appearance.elements[descriptor]
-          : "";
-      const appearanceCssInJs =
-        descriptor && typeof appearance.elements[descriptor] === "object"
-          ? appearance.elements[descriptor]
-          : {};
+  console.log("useStyle running", appearance);
 
-      return cn(
-        `nv-${descriptor}`, // this is the targetable classname for customers
-        className, // default styles
-        appearanceClassnames // overrides via appearance prop (TODO: Handle CSS in JS)
+  return (className: string, descriptor?: keyof Elements) => {
+    const appearanceClassname =
+      descriptor && typeof appearance.elements[descriptor] === "string"
+        ? (appearance.elements[descriptor] as string) || ""
+        : "";
+    const appearanceCssInJs =
+      descriptor && typeof appearance.elements[descriptor] === "object"
+        ? (appearance.elements[descriptor] as CSSProperties) || {}
+        : {};
+    let cssInJsClassname = "";
+
+    if (appearance.styleElement) {
+      cssInJsClassname = css(
+        appearance.styleElement,
+        cssObjectToString(appearanceCssInJs)
       );
-    };
-  });
+    }
 
-  return style();
+    console.log("style() running", cssInJsClassname);
+
+    return cn(
+      `nv-${descriptor}`, // this is the targetable classname for customers
+      className, // default styles
+      appearanceClassname, // overrides via appearance prop classes
+      cssInJsClassname // overrides via appearance prop css in js
+    );
+  };
 };

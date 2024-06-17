@@ -1,12 +1,19 @@
 import { ParentProps, createContext, useContext } from "solid-js";
 
+export type CSSProperties = {
+  [key: string]: string | number;
+};
+
+export type ElementStyles = string | CSSProperties;
+
 export type Elements = {
-  button?: string;
-  root?: string;
+  button?: ElementStyles;
+  root?: ElementStyles;
 };
 
 export type AppearanceContextType = {
   elements: Elements;
+  styleElement: HTMLStyleElement | null;
 };
 
 const AppearanceContext = createContext<AppearanceContextType | undefined>(
@@ -18,8 +25,17 @@ type AppearanceProviderProps = ParentProps & {
 };
 
 export const AppearanceProvider = (props: AppearanceProviderProps) => {
+  let styleElement: HTMLStyleElement | null = null;
+
+  if (typeof window !== "undefined") {
+    styleElement = document.createElement("style");
+    document.head.appendChild(styleElement);
+  }
+
   return (
-    <AppearanceContext.Provider value={{ elements: props.elements || {} }}>
+    <AppearanceContext.Provider
+      value={{ elements: props.elements || {}, styleElement }}
+    >
       {props.children}
     </AppearanceContext.Provider>
   );

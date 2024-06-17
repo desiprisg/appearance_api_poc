@@ -5,7 +5,7 @@ import {
 import { useStyle } from "./useStyle";
 
 type InboxProps = {
-  appearance?: AppearanceContextType;
+  appearance?: Pick<AppearanceContextType, "elements">;
 };
 
 export const Inbox = (props: InboxProps) => {
@@ -18,6 +18,7 @@ export const Inbox = (props: InboxProps) => {
 
 const InternalInbox = () => {
   const style = useStyle();
+
   return (
     <div class="novu">
       <button class={style("tw-bg-red-500", "button")}>test</button>
