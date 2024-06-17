@@ -13,7 +13,6 @@ export type Elements = {
 
 export type AppearanceContextType = {
   elements: Elements;
-  styleElement: HTMLStyleElement | null;
 };
 
 const AppearanceContext = createContext<AppearanceContextType | undefined>(
@@ -25,17 +24,15 @@ type AppearanceProviderProps = ParentProps & {
 };
 
 export const AppearanceProvider = (props: AppearanceProviderProps) => {
-  let styleElement: HTMLStyleElement | null = null;
-
   if (typeof window !== "undefined") {
-    styleElement = document.createElement("style");
+    const styleElement = document.createElement("style");
+    styleElement.id = "novu-css-in-js-appearance-styles";
+
     document.head.appendChild(styleElement);
   }
 
   return (
-    <AppearanceContext.Provider
-      value={{ elements: props.elements || {}, styleElement }}
-    >
+    <AppearanceContext.Provider value={{ elements: props.elements || {} }}>
       {props.children}
     </AppearanceContext.Provider>
   );
