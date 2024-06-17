@@ -15,7 +15,9 @@ export default function App() {
           <a href="/about">About</a>
           <Inbox
             appearance={{
-              elements: { button: { backgroundColor: "black" } },
+              elements: {
+                button: { backgroundColor: "black" },
+              },
             }}
           />
           <button>solid start button</button>

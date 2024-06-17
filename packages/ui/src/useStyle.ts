@@ -1,4 +1,4 @@
-import { createSignal, onMount } from "solid-js";
+import { createMemo, createSignal, onMount } from "solid-js";
 import { CSSProperties, Elements, useAppearance } from "./appearance-context";
 import { cn } from "./lib/utils/cn";
 
@@ -12,7 +12,7 @@ function cssObjectToString(styles: CSSProperties): string {
 }
 
 function createClassFromCssString(styles: string) {
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" || !styles) {
     return "";
   }
 
@@ -35,27 +35,13 @@ function createClassFromCssString(styles: string) {
 
 export const useStyle = () => {
   const appearance = useAppearance();
-  const [func, setFunc] = createSignal(
-    (className: string, descriptor?: keyof Elements) => {
-      const appearanceClassname =
-        descriptor && typeof appearance.elements?.[descriptor] === "string"
-          ? (appearance.elements?.[descriptor] as string) || ""
-          : "";
-      const appearanceCssInJs =
-        descriptor && typeof appearance.elements?.[descriptor] === "object"
-          ? (appearance.elements[descriptor] as CSSProperties) || {}
-          : {};
-
-      return cn(
-        `nv-${descriptor}`, // this is the targetable classname for customers
-        className, // default styles
-        appearanceClassname // overrides via appearance prop classes
-      );
-    }
-  );
-
+  const [isServer, setIsServer] = createSignal(true);
   onMount(() => {
-    setFunc(() => (className: string, descriptor?: keyof Elements) => {
+    setIsServer(false);
+  });
+
+  const func = createMemo(
+    () => (className: string, descriptor?: keyof Elements) => {
       const appearanceClassname =
         descriptor && typeof appearance.elements?.[descriptor] === "string"
           ? (appearance.elements?.[descriptor] as string) || ""
@@ -65,9 +51,12 @@ export const useStyle = () => {
           ? (appearance.elements[descriptor] as CSSProperties) || {}
           : {};
 
-      const cssInJsClassname = createClassFromCssString(
-        cssObjectToString(appearanceCssInJs)
-      );
+      let cssInJsClassname = "";
+      if (!isServer()) {
+        cssInJsClassname = createClassFromCssString(
+          cssObjectToString(appearanceCssInJs)
+        );
+      }
 
       return cn(
         `nv-${descriptor}`, // this is the targetable classname for customers
@@ -75,8 +64,8 @@ export const useStyle = () => {
         appearanceClassname, // overrides via appearance prop classes
         cssInJsClassname
       );
-    });
-  });
+    }
+  );
 
   return func;
 };
