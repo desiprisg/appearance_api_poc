@@ -1,3 +1,4 @@
+import { createSignal, onMount } from "solid-js";
 import { CSSProperties, Elements, useAppearance } from "./appearance-context";
 import { cn } from "./lib/utils/cn";
 
@@ -34,29 +35,48 @@ function createClassFromCssString(styles: string) {
 
 export const useStyle = () => {
   const appearance = useAppearance();
-  console.log("useStyle running", appearance);
+  const [func, setFunc] = createSignal(
+    (className: string, descriptor?: keyof Elements) => {
+      const appearanceClassname =
+        descriptor && typeof appearance.elements?.[descriptor] === "string"
+          ? (appearance.elements?.[descriptor] as string) || ""
+          : "";
+      const appearanceCssInJs =
+        descriptor && typeof appearance.elements?.[descriptor] === "object"
+          ? (appearance.elements[descriptor] as CSSProperties) || {}
+          : {};
 
-  return (className: string, descriptor?: keyof Elements) => {
-    const appearanceClassname =
-      descriptor && typeof appearance.elements?.[descriptor] === "string"
-        ? (appearance.elements?.[descriptor] as string) || ""
-        : "";
-    const appearanceCssInJs =
-      descriptor && typeof appearance.elements?.[descriptor] === "object"
-        ? (appearance.elements[descriptor] as CSSProperties) || {}
-        : {};
+      return cn(
+        `nv-${descriptor}`, // this is the targetable classname for customers
+        className, // default styles
+        appearanceClassname // overrides via appearance prop classes
+      );
+    }
+  );
 
-    const cssInJsClassname = createClassFromCssString(
-      cssObjectToString(appearanceCssInJs)
-    );
+  onMount(() => {
+    setFunc(() => (className: string, descriptor?: keyof Elements) => {
+      const appearanceClassname =
+        descriptor && typeof appearance.elements?.[descriptor] === "string"
+          ? (appearance.elements?.[descriptor] as string) || ""
+          : "";
+      const appearanceCssInJs =
+        descriptor && typeof appearance.elements?.[descriptor] === "object"
+          ? (appearance.elements[descriptor] as CSSProperties) || {}
+          : {};
 
-    console.log("style() running", cssInJsClassname);
+      const cssInJsClassname = createClassFromCssString(
+        cssObjectToString(appearanceCssInJs)
+      );
 
-    return cn(
-      `nv-${descriptor}`, // this is the targetable classname for customers
-      className, // default styles
-      appearanceClassname, // overrides via appearance prop classes
-      cssInJsClassname // overrides via appearance prop css in js
-    );
-  };
+      return cn(
+        `nv-${descriptor}`, // this is the targetable classname for customers
+        className, // default styles
+        appearanceClassname, // overrides via appearance prop classes
+        cssInJsClassname
+      );
+    });
+  });
+
+  return func;
 };
