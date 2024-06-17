@@ -12,7 +12,7 @@ export type Elements = {
 };
 
 export type AppearanceContextType = {
-  elements: Elements;
+  elements?: Elements;
 };
 
 const AppearanceContext = createContext<AppearanceContextType | undefined>(

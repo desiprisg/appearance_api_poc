@@ -38,11 +38,11 @@ export const useStyle = () => {
 
   return (className: string, descriptor?: keyof Elements) => {
     const appearanceClassname =
-      descriptor && typeof appearance.elements[descriptor] === "string"
-        ? (appearance.elements[descriptor] as string) || ""
+      descriptor && typeof appearance.elements?.[descriptor] === "string"
+        ? (appearance.elements?.[descriptor] as string) || ""
         : "";
     const appearanceCssInJs =
-      descriptor && typeof appearance.elements[descriptor] === "object"
+      descriptor && typeof appearance.elements?.[descriptor] === "object"
         ? (appearance.elements[descriptor] as CSSProperties) || {}
         : {};
 
