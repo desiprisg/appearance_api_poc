@@ -1,5 +1,6 @@
 import { createMemo, createSignal, onMount } from "solid-js";
 import { CSSProperties, Elements, useAppearance } from "./appearance-context";
+import { NOVU_CSS_IN_JS_STYLESHEET_ID } from "./constants";
 import { cn } from "./lib/utils/cn";
 
 function cssObjectToString(styles: CSSProperties): string {
@@ -17,7 +18,7 @@ function createClassFromCssString(styles: string) {
   }
 
   const styleElement = document.getElementById(
-    "novu-css-in-js-appearance-styles"
+    NOVU_CSS_IN_JS_STYLESHEET_ID
   ) as HTMLStyleElement;
 
   if (!styleElement) {
@@ -40,7 +41,7 @@ export const useStyle = () => {
     setIsServer(false);
   });
 
-  const func = createMemo(
+  const styleFuncMemo = createMemo(
     () => (className: string, descriptor?: keyof Elements) => {
       const appearanceClassname =
         descriptor && typeof appearance.elements?.[descriptor] === "string"
@@ -67,5 +68,7 @@ export const useStyle = () => {
     }
   );
 
-  return func;
+  return (className: string, descriptor?: keyof Elements) => {
+    return styleFuncMemo()(className, descriptor);
+  };
 };

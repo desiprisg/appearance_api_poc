@@ -1,4 +1,5 @@
 import { ParentProps, createContext, useContext } from "solid-js";
+import { NOVU_CSS_IN_JS_STYLESHEET_ID } from "./constants";
 
 export type CSSProperties = {
   [key: string]: string | number;
@@ -26,7 +27,7 @@ type AppearanceProviderProps = ParentProps & {
 export const AppearanceProvider = (props: AppearanceProviderProps) => {
   if (typeof window !== "undefined") {
     const styleElement = document.createElement("style");
-    styleElement.id = "novu-css-in-js-appearance-styles";
+    styleElement.id = NOVU_CSS_IN_JS_STYLESHEET_ID;
 
     document.head.appendChild(styleElement);
   }
