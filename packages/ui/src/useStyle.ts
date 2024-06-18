@@ -1,9 +1,13 @@
 import { createMemo, createSignal, onMount } from "solid-js";
-import { CSSProperties, Elements, useAppearance } from "./appearance-context";
-import { NOVU_CSS_IN_JS_STYLESHEET_ID } from "./constants";
+import {
+  CSSProperties,
+  Elements,
+  descriptorToCssInJsClass,
+  useAppearance,
+} from "./appearance-context";
 import { cn } from "./lib/utils/cn";
 
-function cssObjectToString(styles: CSSProperties): string {
+export function cssObjectToString(styles: CSSProperties): string {
   return Object.entries(styles)
     .map(([key, value]) => {
       const kebabKey = key.replace(/([A-Z])/g, "-$1").toLowerCase();
@@ -12,23 +16,13 @@ function cssObjectToString(styles: CSSProperties): string {
     .join(" ");
 }
 
-function createClassFromCssString(styles: string) {
-  if (typeof window === "undefined" || !styles) {
-    return "";
-  }
-
-  const styleElement = document.getElementById(
-    NOVU_CSS_IN_JS_STYLESHEET_ID
-  ) as HTMLStyleElement;
-
-  if (!styleElement) {
-    return "";
-  }
-
+export function createClassFromCssString(
+  styleElement: HTMLStyleElement,
+  styles: string
+) {
   const index = styleElement.sheet?.cssRules.length ?? 0;
   const className = `nv-css-${index}`;
   const rule = `.${className} { ${styles} }`;
-
   styleElement.sheet?.insertRule(rule, index);
 
   return className;
@@ -37,6 +31,7 @@ function createClassFromCssString(styles: string) {
 export const useStyle = () => {
   const appearance = useAppearance();
   const [isServer, setIsServer] = createSignal(true);
+
   onMount(() => {
     setIsServer(false);
   });
@@ -47,23 +42,12 @@ export const useStyle = () => {
         descriptor && typeof appearance.elements?.[descriptor] === "string"
           ? (appearance.elements?.[descriptor] as string) || ""
           : "";
-      const appearanceCssInJs =
-        descriptor && typeof appearance.elements?.[descriptor] === "object"
-          ? (appearance.elements[descriptor] as CSSProperties) || {}
-          : {};
-
-      let cssInJsClassname = "";
-      if (!isServer()) {
-        cssInJsClassname = createClassFromCssString(
-          cssObjectToString(appearanceCssInJs)
-        );
-      }
 
       return cn(
-        `nv-${descriptor}`, // this is the targetable classname for customers
+        descriptor ? `nv-${descriptor}` : "", // this is the targetable classname for customers
         className, // default styles
         appearanceClassname, // overrides via appearance prop classes
-        cssInJsClassname
+        descriptor && !isServer() ? descriptorToCssInJsClass[descriptor] : ""
       );
     }
   );

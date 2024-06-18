@@ -1,5 +1,6 @@
-import { ParentProps, createContext, useContext } from "solid-js";
+import { ParentProps, createContext, onMount, useContext } from "solid-js";
 import { NOVU_CSS_IN_JS_STYLESHEET_ID } from "./constants";
+import { createClassFromCssString, cssObjectToString } from "./useStyle";
 
 export type CSSProperties = {
   [key: string]: string | number;
@@ -12,7 +13,14 @@ export type Elements = {
   root?: ElementStyles;
 };
 
+export type Variables = {
+  colors: {
+    primary: string;
+  };
+};
+
 export type AppearanceContextType = {
+  variables?: Variables;
   elements?: Elements;
 };
 
@@ -24,18 +32,40 @@ type AppearanceProviderProps = ParentProps & {
   elements?: Elements;
 };
 
-export const AppearanceProvider = (props: AppearanceProviderProps) => {
-  if (typeof window !== "undefined") {
-    const styleElement = document.createElement("style");
-    styleElement.id = NOVU_CSS_IN_JS_STYLESHEET_ID;
+export const descriptorToCssInJsClass: Record<string, string> = {};
 
-    document.head.appendChild(styleElement);
-  }
+export const AppearanceProvider = (props: AppearanceProviderProps) => {
+  let styleElement!: HTMLStyleElement;
+
+  onMount(() => {
+    for (const key in props.elements) {
+      const elements = props.elements;
+      if (elements.hasOwnProperty(key)) {
+        const value = elements[key as keyof Elements];
+        if (typeof value === "object") {
+          // means it is css in js object
+          const cssString = cssObjectToString(value);
+          const classname = createClassFromCssString(styleElement, cssString);
+          descriptorToCssInJsClass[key] = classname;
+        }
+      }
+    }
+  });
 
   return (
-    <AppearanceContext.Provider value={{ elements: props.elements || {} }}>
-      {props.children}
-    </AppearanceContext.Provider>
+    <>
+      {/* elements CSS in JS stylesheet */}
+      <style
+        ref={(el) => {
+          styleElement = el;
+        }}
+        scoped
+        id={NOVU_CSS_IN_JS_STYLESHEET_ID}
+      />
+      <AppearanceContext.Provider value={{ elements: props.elements || {} }}>
+        {props.children}
+      </AppearanceContext.Provider>
+    </>
   );
 };
 
