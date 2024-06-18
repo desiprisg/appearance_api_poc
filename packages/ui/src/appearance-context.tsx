@@ -1,4 +1,12 @@
-import { ParentProps, createContext, onMount, useContext } from "solid-js";
+import {
+  ParentProps,
+  createContext,
+  createEffect,
+  createSignal,
+  onMount,
+  useContext,
+} from "solid-js";
+import { createStore } from "solid-js/store";
 import { NOVU_CSS_IN_JS_STYLESHEET_ID } from "./constants";
 import { createClassFromCssString, cssObjectToString } from "./useStyle";
 
@@ -22,22 +30,84 @@ export type Variables = {
 export type AppearanceContextType = {
   variables?: Variables;
   elements?: Elements;
+  descriptorToCssInJsClass: Record<string, string>;
 };
 
 const AppearanceContext = createContext<AppearanceContextType | undefined>(
   undefined
 );
 
-type AppearanceProviderProps = ParentProps & {
-  elements?: Elements;
-};
-
-export const descriptorToCssInJsClass: Record<string, string> = {};
+type AppearanceProviderProps = ParentProps &
+  Pick<AppearanceContextType, "elements" | "variables">;
 
 export const AppearanceProvider = (props: AppearanceProviderProps) => {
-  let styleElement!: HTMLStyleElement;
+  const [store, setStore] = createStore<{
+    descriptorToCssInJsClass: Record<string, string>;
+  }>({ descriptorToCssInJsClass: {} });
+  let [styleElement, setStyleElement] = createSignal<HTMLStyleElement | null>(
+    null
+  );
 
+  //place style element on HEAD. Placing in body is available for HTML 5.2 onward.
   onMount(() => {
+    const styleEl = document.createElement("style");
+    styleEl.id = NOVU_CSS_IN_JS_STYLESHEET_ID;
+    document.head.appendChild(styleEl);
+
+    setStyleElement(styleEl);
+  });
+
+  //handle variables
+  createEffect(() => {
+    const styleEl = styleElement();
+
+    if (!styleEl) {
+      return;
+    }
+
+    //handle color variables
+    for (const key in props.variables?.colors) {
+      const colors = props.variables.colors;
+
+      if (colors.hasOwnProperty(key)) {
+        const value = colors[key as keyof Variables["colors"]];
+
+        const shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+        const cssVariableRule = `:root { --novu-colors-${key}: oklch(from ${value} l c h); }`;
+        styleEl.sheet?.insertRule(
+          cssVariableRule,
+          styleEl.sheet.cssRules.length
+        );
+        //alpha shades
+        for (let i = 0; i < shades.length; i++) {
+          const shade = shades[i];
+          const cssVariableRule = `:root { --novu-colors-${key}-alpha-${shade}: oklch(from ${value} l c h / ${shade / 1000}); }`;
+          styleEl.sheet?.insertRule(
+            cssVariableRule,
+            styleEl.sheet.cssRules.length
+          );
+        }
+        //solid shades
+        for (let i = 0; i < shades.length; i++) {
+          const shade = shades[i];
+          const cssVariableRule = `:root { --novu-colors-${key}-${shade}: oklch(from ${value} calc(l - ${(shade - 500) / 1000}) c h); }`;
+          styleEl.sheet?.insertRule(
+            cssVariableRule,
+            styleEl.sheet.cssRules.length
+          );
+        }
+      }
+    }
+  });
+
+  //handle elements
+  createEffect(() => {
+    const styleEl = styleElement();
+
+    if (!styleEl) {
+      return;
+    }
+
     for (const key in props.elements) {
       const elements = props.elements;
       if (elements.hasOwnProperty(key)) {
@@ -45,8 +115,11 @@ export const AppearanceProvider = (props: AppearanceProviderProps) => {
         if (typeof value === "object") {
           // means it is css in js object
           const cssString = cssObjectToString(value);
-          const classname = createClassFromCssString(styleElement, cssString);
-          descriptorToCssInJsClass[key] = classname;
+          const classname = createClassFromCssString(styleEl, cssString);
+          setStore("descriptorToCssInJsClass", (obj) => ({
+            ...obj,
+            [key]: classname,
+          }));
         }
       }
     }
@@ -54,15 +127,12 @@ export const AppearanceProvider = (props: AppearanceProviderProps) => {
 
   return (
     <>
-      {/* elements CSS in JS stylesheet */}
-      <style
-        ref={(el) => {
-          styleElement = el;
+      <AppearanceContext.Provider
+        value={{
+          elements: props.elements || {},
+          descriptorToCssInJsClass: store.descriptorToCssInJsClass,
         }}
-        scoped
-        id={NOVU_CSS_IN_JS_STYLESHEET_ID}
-      />
-      <AppearanceContext.Provider value={{ elements: props.elements || {} }}>
+      >
         {props.children}
       </AppearanceContext.Provider>
     </>

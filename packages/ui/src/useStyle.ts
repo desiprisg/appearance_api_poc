@@ -1,10 +1,5 @@
 import { createMemo, createSignal, onMount } from "solid-js";
-import {
-  CSSProperties,
-  Elements,
-  descriptorToCssInJsClass,
-  useAppearance,
-} from "./appearance-context";
+import { CSSProperties, Elements, useAppearance } from "./appearance-context";
 import { cn } from "./lib/utils/cn";
 
 export function cssObjectToString(styles: CSSProperties): string {
@@ -47,7 +42,9 @@ export const useStyle = () => {
         descriptor ? `nv-${descriptor}` : "", // this is the targetable classname for customers
         className, // default styles
         appearanceClassname, // overrides via appearance prop classes
-        descriptor && !isServer() ? descriptorToCssInJsClass[descriptor] : ""
+        descriptor && !isServer()
+          ? appearance.descriptorToCssInJsClass[descriptor]
+          : ""
       );
     }
   );

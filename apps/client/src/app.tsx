@@ -2,10 +2,11 @@ import { Inbox } from "@repo/ui";
 import { MetaProvider, Title } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
-import { Suspense } from "solid-js";
+import { Suspense, createSignal } from "solid-js";
 import "./app.css";
 
 export default function App() {
+  const [color, setColor] = createSignal("black");
   return (
     <Router
       root={(props) => (
@@ -15,8 +16,15 @@ export default function App() {
           <a href="/about">About</a>
           <Inbox
             appearance={{
+              variables: {
+                colors: {
+                  primary: "#ebb523", //orange
+                },
+              },
               elements: {
-                button: { backgroundColor: "black" },
+                button: {
+                  backgroundColor: "var(--novu-colors-primary-900)",
+                }, // can also do var(--novu-colors-primary-alpha-100)
               },
             }}
           />

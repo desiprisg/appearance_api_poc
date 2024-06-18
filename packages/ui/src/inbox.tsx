@@ -5,12 +5,15 @@ import {
 import { useStyle } from "./useStyle";
 
 type InboxProps = {
-  appearance?: Pick<AppearanceContextType, "elements">;
+  appearance?: Pick<AppearanceContextType, "elements" | "variables">;
 };
 
 export const Inbox = (props: InboxProps) => {
   return (
-    <AppearanceProvider elements={props.appearance?.elements}>
+    <AppearanceProvider
+      elements={props.appearance?.elements}
+      variables={props.appearance?.variables}
+    >
       <InternalInbox />
     </AppearanceProvider>
   );
